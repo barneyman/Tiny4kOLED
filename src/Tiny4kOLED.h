@@ -6,6 +6,9 @@
  *
  * Source code available at: https://bitbucket.org/tinusaur/ssd1306xled
  *
+ * Re-written and extended by Stephen Denne
+ * from 2017-04-25 at https://github.com/datacute/Tiny4kOLED
+ *
  */
 #include <stdint.h>
 #include <Arduino.h>
@@ -21,10 +24,10 @@
 #define TINY4KOLED_H
 
 typedef struct {
-	uint8_t  *bitmap;      // character bitmaps data
-	uint8_t  width;        // character width in pixels
-	uint8_t  height;       // character height in pages (8 pixels)
-	uint8_t  first, last;  // ASCII extents
+	uint8_t *bitmap;      // character bitmaps data
+	uint8_t width;        // character width in pixels
+	uint8_t height;       // character height in pages (8 pixels)
+	uint8_t first, last;  // ASCII extents
 } DCfont;
 
 // Two included fonts, The space isn't used unless it is needed
@@ -42,13 +45,16 @@ typedef struct {
 class SSD1306Device: public Print {
 
 	public:
-		SSD1306Device(void);
 		void begin(void);
+		void begin(uint8_t init_sequence_length, const uint8_t init_sequence []);
 		void switchRenderFrame(void);
 		void switchDisplayFrame(void);
 		void switchFrame(void);
+		uint8_t currentRenderFrame(void);
+		uint8_t currentDisplayFrame(void);
 		void setFont(const DCfont *font);
 		void setCursor(uint8_t x, uint8_t y);
+		void newLine();
 		void fill(uint8_t fill);
 		void fillToEOL(uint8_t fill);
 		void fillLength(uint8_t fill, uint8_t length);
@@ -63,9 +69,9 @@ class SSD1306Device: public Print {
 		void setInverse(bool enable);
 		void off(void);
 		void on(void);
-		
+
 		// 2. Scrolling Command Table
-		
+
 		void scrollRight(uint8_t startPage, uint8_t interval, uint8_t endPage);
 		void scrollLeft(uint8_t startPage, uint8_t interval, uint8_t endPage);
 		void scrollRightOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset);
@@ -73,31 +79,49 @@ class SSD1306Device: public Print {
 		void deactivateScroll(void);
 		void activateScroll(void);
 		void setVerticalScrollArea(uint8_t top, uint8_t rows);
-		
+
 		// 3. Addressing Setting Command Table
+		void setColumnStartAddress(uint8_t startAddress);
+		void setMemoryAddressingMode(uint8_t mode);
+		void setColumnAddress(uint8_t startAddress, uint8_t endAddress);
+		void setPageAddress(uint8_t startPage, uint8_t endPage);
+		void setPageStartAddress(uint8_t startPage);
 
 		// 4. Hardware Configuration (Panel resolution and layout related) Command Table
-		
+
 		void setDisplayStartLine(uint8_t startLine);
 		void setSegmentRemap(uint8_t remap);
 		void setMultiplexRatio(uint8_t mux);
 		void setComOutputDirection(uint8_t direction);
 		void setDisplayOffset(uint8_t offset);
 		void setComPinsHardwareConfiguration(uint8_t alternative, uint8_t enableLeftRightRemap);
+
+		// 5. Timing and Driving Scheme Setting Command table
+
 		void setDisplayClock(uint8_t divideRatio, uint8_t oscillatorFrequency);
 		void setPrechargePeriod(uint8_t phaseOnePeriod, uint8_t phaseTwoPeriod);
 		void setVcomhDeselectLevel(uint8_t level);
 		void nop(void);
 
+		// 6. Advance Graphic Command table
+
+		void fadeOut(uint8_t interval);
+		void blink(uint8_t interval);
+		void disableFadeOutAndBlinking(void);
+		void enableZoomIn(void);
+		void disableZoomIn(void);
+
+		// Charge Pump Settings
+
+		void enableChargePump(void);
+		void disableChargePump(void);
+
 		virtual size_t write(byte c);
 		using Print::write;
 
 	private:
-		void ssd1306_send_command(uint8_t command);
-		void ssd1306_send_command2(uint8_t command1, uint8_t command2);
-		void ssd1306_send_start(uint8_t transmission_type);
-		void ssd1306_send_byte(uint8_t transmission_type, uint8_t byte);
-		void ssd1306_send_stop();
+		void newLine(uint8_t fontHeight);
+
 };
 
 extern SSD1306Device oled;
