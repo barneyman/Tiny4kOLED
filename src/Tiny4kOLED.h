@@ -9,7 +9,13 @@
  */
 #include <stdint.h>
 #include <Arduino.h>
-#include <TinyWireM.h>  // Version with buffer bugfix: https://github.com/adafruit/TinyWireM
+#if defined( ARDUINO_ARCH_ESP8266 ) || defined( ARDUINO_ARCH_ESP32 )
+#include <Wire.h>
+#define _WireClass Wire
+#else
+#define _WireClass TinyWire
+#include <TinyWire.h>  // Version with buffer bugfix: https://github.com/adafruit/TinyWireM
+#endif
 
 #ifndef TINY4KOLED_H
 #define TINY4KOLED_H

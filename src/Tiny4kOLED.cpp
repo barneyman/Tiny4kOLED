@@ -47,14 +47,14 @@ const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequence
 	0x8D, 0x14		// Set DC-DC enable
 };
 
-DCfont *oledFont;
+const DCfont *oledFont;
 uint8_t oledX, oledY = 0;
 uint8_t renderingFrame, drawingFrame = 0;
 
 SSD1306Device::SSD1306Device(void){}
 
 void SSD1306Device::begin(void) {
-	TinyWireM.begin();
+	//_WireClass.begin();
 
 	ssd1306_send_start(SSD1306_COMMAND);
 	for (uint8_t i = 0; i < sizeof(ssd1306_init_sequence); i++) {
@@ -68,45 +68,45 @@ void SSD1306Device::setFont(const DCfont *font) {
 }
 
 void SSD1306Device::ssd1306_send_start(uint8_t transmission_type) {
-	TinyWireM.beginTransmission(SSD1306);
-	TinyWireM.write(transmission_type);
+	_WireClass.beginTransmission(SSD1306);
+	_WireClass.write(transmission_type);
 }
 
 void SSD1306Device::ssd1306_send_stop(void) {
-	TinyWireM.endTransmission();
+	_WireClass.endTransmission();
 }
 
 void SSD1306Device::ssd1306_send_byte(uint8_t transmission_type, uint8_t byte) {
-	if (TinyWireM.write(byte) == 0) {
+	if (_WireClass.write(byte) == 0) {
 		ssd1306_send_stop();
 		ssd1306_send_start(transmission_type);
-		TinyWireM.write(byte);
+		_WireClass.write(byte);
 	}
 }
 
 void SSD1306Device::ssd1306_send_command(uint8_t command) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command);
+	_WireClass.write(command);
 	ssd1306_send_stop();
 }
 
 void SSD1306Device::ssd1306_send_command2(uint8_t command1, uint8_t command2) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command1);
-	TinyWireM.write(command2);
+	_WireClass.write(command1);
+	_WireClass.write(command2);
 	ssd1306_send_stop();
 }
 
 void SSD1306Device::setCursor(uint8_t x, uint8_t y) {
 	ssd1306_send_start(SSD1306_COMMAND);
 	if (renderingFrame == 1) {
-		TinyWireM.write(0xb0 | ((y + 4) & 0x07));
+		_WireClass.write(0xb0 | ((y + 4) & 0x07));
 	}
 	else {
-		TinyWireM.write(0xb0 | (y & 0x07));
+		_WireClass.write(0xb0 | (y & 0x07));
 	}
-	TinyWireM.write(((x & 0xf0) >> 4) | 0x10);
-	TinyWireM.write(x & 0x0f);
+	_WireClass.write(((x & 0xf0) >> 4) | 0x10);
+	_WireClass.write(x & 0x0f);
 	ssd1306_send_stop();
 	oledX = x;
 	oledY = y;
@@ -264,47 +264,47 @@ void SSD1306Device::on(void) {
 
 void SSD1306Device::scrollRight(uint8_t startPage, uint8_t interval, uint8_t endPage) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(0x26);
-	TinyWireM.write(0x00);
-	TinyWireM.write(startPage);
-	TinyWireM.write(interval);
-	TinyWireM.write(endPage);
-	TinyWireM.write(0x00);
-	TinyWireM.write(0xFF);
+	_WireClass.write(0x26);
+	_WireClass.write(0x00);
+	_WireClass.write(startPage);
+	_WireClass.write(interval);
+	_WireClass.write(endPage);
+	_WireClass.write(0x00);
+	_WireClass.write(0xFF);
 	ssd1306_send_stop();
 }
 
 void SSD1306Device::scrollLeft(uint8_t startPage, uint8_t interval, uint8_t endPage) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(0x27);
-	TinyWireM.write(0x00);
-	TinyWireM.write(startPage);
-	TinyWireM.write(interval);
-	TinyWireM.write(endPage);
-	TinyWireM.write(0x00);
-	TinyWireM.write(0xFF);
+	_WireClass.write(0x27);
+	_WireClass.write(0x00);
+	_WireClass.write(startPage);
+	_WireClass.write(interval);
+	_WireClass.write(endPage);
+	_WireClass.write(0x00);
+	_WireClass.write(0xFF);
 	ssd1306_send_stop();
 }
 
 void SSD1306Device::scrollRightOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(0x29);
-	TinyWireM.write(0x00);
-	TinyWireM.write(startPage);
-	TinyWireM.write(interval);
-	TinyWireM.write(endPage);
-	TinyWireM.write(offset);
+	_WireClass.write(0x29);
+	_WireClass.write(0x00);
+	_WireClass.write(startPage);
+	_WireClass.write(interval);
+	_WireClass.write(endPage);
+	_WireClass.write(offset);
 	ssd1306_send_stop();
 }
 
 void SSD1306Device::scrollLeftOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(0x2A);
-	TinyWireM.write(0x00);
-	TinyWireM.write(startPage);
-	TinyWireM.write(interval);
-	TinyWireM.write(endPage);
-	TinyWireM.write(offset);
+	_WireClass.write(0x2A);
+	_WireClass.write(0x00);
+	_WireClass.write(startPage);
+	_WireClass.write(interval);
+	_WireClass.write(endPage);
+	_WireClass.write(offset);
 	ssd1306_send_stop();
 }
 
@@ -318,9 +318,9 @@ void SSD1306Device::activateScroll(void) {
 
 void SSD1306Device::setVerticalScrollArea(uint8_t top, uint8_t rows) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(0xA3);
-	TinyWireM.write(top);
-	TinyWireM.write(rows);
+	_WireClass.write(0xA3);
+	_WireClass.write(top);
+	_WireClass.write(rows);
 	ssd1306_send_stop();
 }
 
@@ -368,6 +368,6 @@ void SSD1306Device::nop(void) {
 	ssd1306_send_command(0xE3);
 }
 
-SSD1306Device oled;
+
 
 // ----------------------------------------------------------------------------
