@@ -53,63 +53,63 @@ static uint8_t oledX = 0, oledY = 0;
 static uint8_t renderingFrame = 0xB0, drawingFrame = 0x40;
 
 static void ssd1306_send_start(uint8_t transmission_type) {
-	TinyWireM.beginTransmission(SSD1306);
-	TinyWireM.write(transmission_type);
+	_WireClass.beginTransmission(SSD1306);
+	_WireClass.write(transmission_type);
 }
 
 static void ssd1306_send_stop(void) {
-	TinyWireM.endTransmission();
+	_WireClass.endTransmission();
 }
 
 static void ssd1306_send_byte(uint8_t transmission_type, uint8_t byte) {
-	if (TinyWireM.write(byte) == 0) {
+	if (_WireClass.write(byte) == 0) {
 		ssd1306_send_stop();
 		ssd1306_send_start(transmission_type);
-		TinyWireM.write(byte);
+		_WireClass.write(byte);
 	}
 }
 
 static void ssd1306_send_command(uint8_t command) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command);
+	_WireClass.write(command);
 	ssd1306_send_stop();
 }
 
 static void ssd1306_send_command2(uint8_t command1, uint8_t command2) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command1);
-	TinyWireM.write(command2);
+	_WireClass.write(command1);
+	_WireClass.write(command2);
 	ssd1306_send_stop();
 }
 
 static void ssd1306_send_command3(uint8_t command1, uint8_t command2, uint8_t command3) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command1);
-	TinyWireM.write(command2);
-	TinyWireM.write(command3);
+	_WireClass.write(command1);
+	_WireClass.write(command2);
+	_WireClass.write(command3);
 	ssd1306_send_stop();
 }
 
 static void ssd1306_send_command6(uint8_t command1, uint8_t command2, uint8_t command3, uint8_t command4, uint8_t command5, uint8_t command6) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command1);
-	TinyWireM.write(command2);
-	TinyWireM.write(command3);
-	TinyWireM.write(command4);
-	TinyWireM.write(command5);
-	TinyWireM.write(command6);
+	_WireClass.write(command1);
+	_WireClass.write(command2);
+	_WireClass.write(command3);
+	_WireClass.write(command4);
+	_WireClass.write(command5);
+	_WireClass.write(command6);
 	ssd1306_send_stop();
 }
 
 static void ssd1306_send_command7(uint8_t command1, uint8_t command2, uint8_t command3, uint8_t command4, uint8_t command5, uint8_t command6, uint8_t command7) {
 	ssd1306_send_start(SSD1306_COMMAND);
-	TinyWireM.write(command1);
-	TinyWireM.write(command2);
-	TinyWireM.write(command3);
-	TinyWireM.write(command4);
-	TinyWireM.write(command5);
-	TinyWireM.write(command6);
-	TinyWireM.write(command7);
+	_WireClass.write(command1);
+	_WireClass.write(command2);
+	_WireClass.write(command3);
+	_WireClass.write(command4);
+	_WireClass.write(command5);
+	_WireClass.write(command6);
+	_WireClass.write(command7);
 	ssd1306_send_stop();
 }
 
@@ -118,7 +118,7 @@ void SSD1306Device::begin(void) {
 }
 
 void SSD1306Device::begin(uint8_t init_sequence_length, const uint8_t init_sequence []) {
-	TinyWireM.begin();
+	_WireClass.begin();
 
 	ssd1306_send_start(SSD1306_COMMAND);
 	for (uint8_t i = 0; i < init_sequence_length; i++) {
@@ -416,6 +416,6 @@ void SSD1306Device::disableChargePump(void) {
 	ssd1306_send_command2(0x8D, 0x10);
 }
 
-SSD1306Device oled;
+//SSD1306Device oled;
 
 // ----------------------------------------------------------------------------
