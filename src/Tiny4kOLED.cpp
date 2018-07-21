@@ -126,7 +126,8 @@ void SSD1306Device::setFont(const DCfont *font) {
 }
 
 void SSD1306Device::setCursor(uint8_t x, uint8_t y) {
-	ssd1306_send_command3(renderingFrame | (y & 0x07), 0x10 | ((x & 0xf0) >> 4), x & 0x0f);
+	int offsetX = x + oledXoffset();
+	ssd1306_send_command3(renderingFrame + (y & 0x07), 0x10 | ((offsetX & 0xf0) >> 4), offsetX & 0x0f);
 	oledX = x;
 	oledY = y;
 }
@@ -174,9 +175,22 @@ size_t SSD1306Device::write(byte c) {
 		return 1;
 	}
 
+	// special case - if we see a tab, clear to end of line
+	if (c == '\t')
+	{
+		uint8_t popX=oledX, popY = oledY;
+		for (int y = 0; y < oledFont->height; y++)
+		{
+			setCursor(popX, popY + y);
+			clearToEOL();
+		}
+		setCursor(popX, popY);
+		return 1;
+	}
+
 	uint8_t w = oledFont->width;
 
-	if (oledX > (128 - w)) {
+	if (oledX > (oledWidth() - w)) {
 		newLine(h);
 	}
 
@@ -223,7 +237,7 @@ void SSD1306Device::clearToEOL(void) {
 }
 
 void SSD1306Device::fillToEOL(uint8_t fill) {
-	fillLength(fill, 128 - oledX);
+	fillLength(fill, oledWidth() - oledX);
 }
 
 void SSD1306Device::fillLength(uint8_t fill, uint8_t length) {
@@ -439,10 +453,3 @@ void SSD1306_64x48::begin(void) {
 	renderingFrame = 0xb2;
 }
 
-void SSD1306_64x48::setCursor(uint8_t x, uint8_t y) 
-{
-	x += 32;
-	ssd1306_send_command3(renderingFrame + (y & 0x07), 0x10 | ((x & 0xf0) >> 4), x & 0x0f);
-	oledX = x;
-	oledY = y;
-}

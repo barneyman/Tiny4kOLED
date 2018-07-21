@@ -64,6 +64,10 @@ protected:
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		// the number of rows/8
 		virtual uint8_t numberOfPages() = 0;
+		// if the screen is smaller than 128, this is the offset from left, of screen memory
+		virtual uint8_t oledXoffset() { return 0;  }
+		// how wide the PHYSICAL screen is
+		virtual uint8_t oledWidth() { return 128; }
 
 		// 0. frame handling
 		virtual void switchRenderFrame(void) {}
@@ -219,8 +223,10 @@ const uint8_t SSD1306_64x48_init_sequence[] PROGMEM = {
 	0x50,				// --set start line address
 	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped.
 	0xA8, 0x2f,		// Set multiplex ratio(1 to 63)
+
 	0xDA, 0x12,		// Set com pins hardware configuration
 	0x8D, 0x14		// Set DC-DC enable
+
 };
 
 // implementation of a 64x48 panel (wemos OLED shield)
@@ -230,9 +236,11 @@ public:
 
 	virtual void begin();
 	virtual uint8_t numberOfPages() { return 6; }
+	// if the screen is smaller than 128, this is the offset from left, of screen memory
+	virtual uint8_t oledXoffset() { return 32; }
+	// how wide the PHYSICAL screen is
+	virtual uint8_t oledWidth() { return 64; }
 
-
-	virtual void setCursor(uint8_t x, uint8_t y);
 protected:
 
 
