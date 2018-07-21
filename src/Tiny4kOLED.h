@@ -44,23 +44,34 @@ typedef struct {
 
 class SSD1306Device: public Print {
 
-	public:
-		void begin(void);
+protected:
 		void begin(uint8_t init_sequence_length, const uint8_t init_sequence []);
-		void switchRenderFrame(void);
-		void switchDisplayFrame(void);
-		void switchFrame(void);
-		uint8_t currentRenderFrame(void);
-		uint8_t currentDisplayFrame(void);
+
+
+	public:
+		// begin by calling the protected begin(...) with yuor init
+		virtual void begin(void)=0;
+
 		void setFont(const DCfont *font);
-		void setCursor(uint8_t x, uint8_t y);
+		virtual void setCursor(uint8_t x, uint8_t y);
 		void newLine();
 		void fill(uint8_t fill);
+		void fillLine(uint8_t line, uint8_t fill);
 		void fillToEOL(uint8_t fill);
 		void fillLength(uint8_t fill, uint8_t length);
 		void clear(void);
 		void clearToEOL(void);
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
+		// the number of rows/8
+		virtual uint8_t numberOfPages() = 0;
+
+		// 0. frame handling
+		virtual void switchRenderFrame(void) {}
+		virtual void switchDisplayFrame(void) {}
+		virtual void switchFrame(void) {}
+		virtual uint8_t currentRenderFrame(void) { return 1; }
+		virtual uint8_t currentDisplayFrame(void) { return 1; }
+		virtual bool offScreenRender() { return false; }
 
 		// 1. Fundamental Command Table
 
@@ -119,12 +130,116 @@ class SSD1306Device: public Print {
 		virtual size_t write(byte c);
 		using Print::write;
 
+protected:
+
+	uint8_t renderingFrame = 0xB0, drawingFrame = 0x40;
+
 	private:
 		void newLine(uint8_t fontHeight);
 
 };
 
-extern SSD1306Device oled;
+// implementation of a 128x32 panel - i don't have one of these, cannot confirm it works
+const uint8_t SSD1306_128x32_init_sequence[] PROGMEM = {
+	// Initialization Sequence
+	//	0xAE,			// Display OFF (sleep mode)
+	//	0x20, 0b10,		// Set Memory Addressing Mode
+	// 00=Horizontal Addressing Mode; 01=Vertical Addressing Mode;
+	// 10=Page Addressing Mode (RESET); 11=Invalid
+	//	0xB0,			// Set Page Start Address for Page Addressing Mode, 0-7
+	0xC8,			// Set COM Output Scan Direction
+	//	0x00,			// ---set low column address
+	//	0x10,			// ---set high column address
+	//	0x40,			// --set start line address
+	//	0x81, 0x7F,		// Set contrast control register
+	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped.
+	//	0xA6,			// Set display mode. A6=Normal; A7=Inverse
+	0xA8, 0x1F,		// Set multiplex ratio(1 to 64)
+	//	0xA4,			// Output RAM to Display
+	// 0xA4=Output follows RAM content; 0xA5,Output ignores RAM content
+	//	0xD3, 0x00,		// Set display offset. 00 = no offset
+	//	0xD5, 0x80,		// --set display clock divide ratio/oscillator frequency
+	//	0xD9, 0x22,		// Set pre-charge period
+	0xDA, 0x02,		// Set com pins hardware configuration
+	//	0xDB, 0x20,		// --set vcomh 0x20 = 0.77xVcc
+	0x8D, 0x14		// Set DC-DC enable
+};
+
+class SSD1306_128x32 : public SSD1306Device
+{
+public:
+
+	virtual void begin();
+	virtual uint8_t numberOfPages() { return 4; }
+
+	// 0. frame handling
+	void switchRenderFrame(void);
+	void switchDisplayFrame(void);
+	void switchFrame(void);
+	uint8_t currentRenderFrame(void);
+	uint8_t currentDisplayFrame(void);
+	virtual bool offScreenRender() { return true; }
+
+
+
+};
+
+
+// implementation of a 128x64 panel 
+
+const uint8_t SSD1306_128x64_init_sequence[] PROGMEM = {
+	// Initialization Sequence
+	0xB0,			// Set Page Start Address for Page Addressing Mode, 0-7
+	0xC8,			// Set COM Output Scan Direction
+	0x40,			// --set start line address
+	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped.
+	0xA8, 0x3f,		// Set multiplex ratio(1 to 63)
+	0xDA, 0x12,		// Set com pins hardware configuration
+	0x8D, 0x14		// Set DC-DC enable
+};
+
+class SSD1306_128x64 : public SSD1306Device
+{
+public:
+
+	virtual void begin();
+	virtual uint8_t numberOfPages() { return 8; }
+
+
+protected:
+
+
+};
+
+
+const uint8_t SSD1306_64x48_init_sequence[] PROGMEM = {
+	// Initialization Sequence
+	0xB0,			// Set Page Start Address for Page Addressing Mode, 0-7
+	0xC8,			// Set COM Output Scan Direction
+	0x50,				// --set start line address
+	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped.
+	0xA8, 0x2f,		// Set multiplex ratio(1 to 63)
+	0xDA, 0x12,		// Set com pins hardware configuration
+	0x8D, 0x14		// Set DC-DC enable
+};
+
+// implementation of a 64x48 panel (wemos OLED shield)
+class SSD1306_64x48 : public SSD1306Device
+{
+public:
+
+	virtual void begin();
+	virtual uint8_t numberOfPages() { return 6; }
+
+
+	virtual void setCursor(uint8_t x, uint8_t y);
+protected:
+
+
+};
+
+
+
 
 // ----------------------------------------------------------------------------
 

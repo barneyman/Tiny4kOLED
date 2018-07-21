@@ -15,8 +15,6 @@
 
 #include "Tiny4kOLED.h"
 
-#define SSD1306_PAGES 4
-
 #define SSD1306_COMMAND 0x00
 #define SSD1306_DATA 0x40
 
@@ -50,7 +48,6 @@ static const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequ
 
 static const DCfont *oledFont = 0;
 static uint8_t oledX = 0, oledY = 0;
-static uint8_t renderingFrame = 0xB0, drawingFrame = 0x40;
 
 static void ssd1306_send_start(uint8_t transmission_type) {
 	_WireClass.beginTransmission(SSD1306);
@@ -113,9 +110,6 @@ static void ssd1306_send_command7(uint8_t command1, uint8_t command2, uint8_t co
 	ssd1306_send_stop();
 }
 
-void SSD1306Device::begin(void) {
-	begin(sizeof(ssd1306_init_sequence), ssd1306_init_sequence);
-}
 
 void SSD1306Device::begin(uint8_t init_sequence_length, const uint8_t init_sequence []) {
 	_WireClass.begin();
@@ -142,17 +136,22 @@ void SSD1306Device::clear(void) {
 }
 
 void SSD1306Device::fill(uint8_t fill) {
-	for (uint8_t m = 0; m < SSD1306_PAGES; m++) {
-		setCursor(0, m);
-		fillToEOL(fill);
+	for (uint8_t m = 0; m < numberOfPages(); m++) {
+		fillLine(m, fill);
 	}
 	setCursor(0, 0);
 }
 
+void SSD1306Device::fillLine(uint8_t line, uint8_t fill)
+{
+	setCursor(0, line);
+	fillToEOL(fill);
+}
+
 void SSD1306Device::newLine(uint8_t fontHeight) {
 	oledY+=fontHeight;
-	if (oledY > SSD1306_PAGES - fontHeight) {
-		oledY = SSD1306_PAGES - fontHeight;
+	if (oledY > numberOfPages() - fontHeight) {
+		oledY = numberOfPages() - fontHeight;
 	}
 	setCursor(0, oledY);
 }
@@ -238,27 +237,6 @@ void SSD1306Device::fillLength(uint8_t fill, uint8_t length) {
 	ssd1306_send_stop();
 }
 
-void SSD1306Device::switchRenderFrame(void) {
-	renderingFrame ^= 0x04;
-}
-
-void SSD1306Device::switchDisplayFrame(void) {
-	drawingFrame ^= 0x20;
-	ssd1306_send_command(drawingFrame);
-}
-
-void SSD1306Device::switchFrame(void) {
-	switchDisplayFrame();
-	switchRenderFrame();
-}
-
-uint8_t SSD1306Device::currentRenderFrame(void) {
-	return (renderingFrame >> 2) & 0x01;
-}
-
-uint8_t SSD1306Device::currentDisplayFrame(void) {
-	return (drawingFrame >> 5) & 0x01;
-}
 
 // 1. Fundamental Command Table
 
@@ -416,6 +394,55 @@ void SSD1306Device::disableChargePump(void) {
 	ssd1306_send_command2(0x8D, 0x10);
 }
 
-//SSD1306Device oled;
 
 // ----------------------------------------------------------------------------
+
+void SSD1306_128x32::begin(void) 
+{
+	SSD1306Device::begin(sizeof(SSD1306_128x32_init_sequence), SSD1306_128x32_init_sequence);
+}
+
+void SSD1306_128x32::switchRenderFrame(void) {
+	renderingFrame ^= 0x04;
+}
+
+void SSD1306_128x32::switchDisplayFrame(void) {
+	drawingFrame ^= 0x20;
+	ssd1306_send_command(drawingFrame);
+}
+
+void SSD1306_128x32::switchFrame(void) {
+	switchDisplayFrame();
+	switchRenderFrame();
+}
+
+uint8_t SSD1306_128x32::currentRenderFrame(void) {
+	return (renderingFrame >> 2) & 0x01;
+}
+
+uint8_t SSD1306_128x32::currentDisplayFrame(void) {
+	return (drawingFrame >> 5) & 0x01;
+}
+
+
+// ----------------------------------------------------------------------------
+void SSD1306_128x64::begin(void) {
+	SSD1306Device::begin(sizeof(SSD1306_128x64_init_sequence), SSD1306_128x64_init_sequence);
+}
+
+
+
+// ----------------------------------------------------------------------------
+void SSD1306_64x48::begin(void) {
+	SSD1306Device::begin(sizeof(SSD1306_64x48_init_sequence), SSD1306_64x48_init_sequence);
+
+	renderingFrame = 0xb2;
+}
+
+void SSD1306_64x48::setCursor(uint8_t x, uint8_t y) 
+{
+	x += 32;
+	ssd1306_send_command3(renderingFrame + (y & 0x07), 0x10 | ((x & 0xf0) >> 4), x & 0x0f);
+	oledX = x;
+	oledY = y;
+}
