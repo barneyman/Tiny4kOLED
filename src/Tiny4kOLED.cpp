@@ -232,6 +232,18 @@ void SSD1306Device::bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const
 	setCursor(0, 0);
 }
 
+void SSD1306Device::clearToEOS()
+{
+	uint8_t popX = oledX, popY = oledY;
+	for (int y = popY; y < numberOfPages(); y++)
+	{
+		setCursor(0, y);
+		clearToEOL();
+	}
+	setCursor(popX, popY);
+
+}
+
 void SSD1306Device::clearToEOL(void) {
 	fillToEOL(0x00);
 }

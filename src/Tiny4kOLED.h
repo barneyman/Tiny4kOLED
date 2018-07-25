@@ -61,6 +61,7 @@ protected:
 		void fillLength(uint8_t fill, uint8_t length);
 		void clear(void);
 		void clearToEOL(void);
+		void clearToEOS();
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		// the number of rows/8
 		virtual uint8_t numberOfPages() = 0;
